@@ -1,16 +1,14 @@
-local existingHighlights = {}
+local espConnections = {}  -- Table to keep track of all connections
 
 local function createHighlight(player)
-    if existingHighlights[player] then return end
-
     local highlight = Drawing.new("Square")
     highlight.Visible = false
     highlight.Thickness = 2
     highlight.Color = Color3.fromRGB(255, 0, 0)
     highlight.Filled = false
-    existingHighlights[player] = highlight
 
-    game:GetService("RunService").RenderStepped:Connect(function()
+    local renderConnection
+    renderConnection = game:GetService("RunService").RenderStepped:Connect(function()
         if player == game.Players.LocalPlayer then
             highlight.Visible = false
             return
@@ -44,36 +42,35 @@ local function createHighlight(player)
         end
     end)
 
+    -- Add the render connection to the table
+    table.insert(espConnections, renderConnection)
+
     return highlight
 end
 
-game.Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        if player ~= game.Players.LocalPlayer then
-            if player.Team ~= game.Players.LocalPlayer.Team then
-                createHighlight(player)
-            end
-        end
-    end)
-end)
-
-game.Players.PlayerRemoving:Connect(function(player)
-    local highlight = existingHighlights[player]
-    if highlight then
-        highlight:Remove()
-        existingHighlights[player] = nil
+-- Disconnect function to clean up when ESP is toggled off
+local function disconnectESP()
+    for _, connection in pairs(espConnections) do
+        connection:Disconnect()  -- Disconnect each render connection
     end
-end)
+    espConnections = {}  -- Reset the connections table
+end
 
-while true do
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            if player.Team ~= game.Players.LocalPlayer.Team then
-                if not existingHighlights[player] then
+-- Example to use in the GUI toggling function
+local espEnabled = false
+local function toggleESP()
+    espEnabled = not espEnabled
+    if espEnabled then
+        -- Enable ESP by creating highlights for players
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                if player.Team ~= game.Players.LocalPlayer.Team then
                     createHighlight(player)
                 end
             end
         end
+    else
+        -- Disable ESP by disconnecting connections
+        disconnectESP()
     end
-    wait(0.5)  -- You can adjust the interval for the loop if needed
 end

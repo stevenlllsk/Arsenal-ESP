@@ -7,30 +7,21 @@ local function createHighlight(player)
     highlight.Color = Color3.fromRGB(255, 0, 0)
     highlight.Filled = false
 
-    local healthBar = Drawing.new("Square")
-    healthBar.Visible = false
-    healthBar.Thickness = 2
-    healthBar.Color = Color3.fromRGB(0, 255, 0)  -- Green color for health bar
-    healthBar.Filled = true
-
     local renderConnection
     renderConnection = game:GetService("RunService").RenderStepped:Connect(function()
         if player == game.Players.LocalPlayer then
             highlight.Visible = false
-            healthBar.Visible = false
             return
         end
 
         if player.Team == game.Players.LocalPlayer.Team then
             highlight.Visible = false
-            healthBar.Visible = false
             return
         end
 
         local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
+        if character and character:FindFirstChild("HumanoidRootPart") then
             local rootPart = character.HumanoidRootPart
-            local humanoid = character.Humanoid
             local viewportPos = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
 
             if viewportPos.Z > 0 then
@@ -40,31 +31,21 @@ local function createHighlight(player)
 
                 local boxSize = math.clamp(200 / distance * sizeFactor, 50, 200)
 
-                -- Position the highlight box
                 highlight.Position = Vector2.new(viewportPos.X - boxSize / 2, viewportPos.Y - boxSize / 2)
                 highlight.Size = Vector2.new(boxSize, boxSize)
                 highlight.Visible = true
-
-                -- Calculate the health bar size
-                local healthPercent = humanoid.Health / humanoid.MaxHealth
-                local healthBarHeight = math.clamp(boxSize * healthPercent, 5, boxSize)  -- Height based on health
-                healthBar.Position = Vector2.new(viewportPos.X + boxSize / 2 + 5, viewportPos.Y - boxSize / 2)
-                healthBar.Size = Vector2.new(5, healthBarHeight)
-                healthBar.Visible = true
             else
                 highlight.Visible = false
-                healthBar.Visible = false
             end
         else
             highlight.Visible = false
-            healthBar.Visible = false
         end
     end)
 
     -- Add the render connection to the table
     table.insert(espConnections, renderConnection)
 
-    return highlight, healthBar
+    return highlight
 end
 
 -- Disconnect function to clean up when ESP is toggled off

@@ -1,9 +1,14 @@
+local existingHighlights = {}
+
 local function createHighlight(player)
+    if existingHighlights[player] then return end
+
     local highlight = Drawing.new("Square")
     highlight.Visible = false
     highlight.Thickness = 2
     highlight.Color = Color3.fromRGB(255, 0, 0)
     highlight.Filled = false
+    existingHighlights[player] = highlight
 
     game:GetService("RunService").RenderStepped:Connect(function()
         if player == game.Players.LocalPlayer then
@@ -42,18 +47,6 @@ local function createHighlight(player)
     return highlight
 end
 
-local function highlightAllPlayers()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                if player.Team ~= game.Players.LocalPlayer.Team then
-                    createHighlight(player)
-                end
-            end
-        end
-    end
-end
-
 game.Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
         if player ~= game.Players.LocalPlayer then
@@ -65,12 +58,22 @@ game.Players.PlayerAdded:Connect(function(player)
 end)
 
 game.Players.PlayerRemoving:Connect(function(player)
-    if player.Character then
-        local highlight = player:FindFirstChild("Highlight")
-        if highlight then
-            highlight:Remove()
-        end
+    local highlight = existingHighlights[player]
+    if highlight then
+        highlight:Remove()
+        existingHighlights[player] = nil
     end
 end)
 
-highlightAllPlayers()
+while true do
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            if player.Team ~= game.Players.LocalPlayer.Team then
+                if not existingHighlights[player] then
+                    createHighlight(player)
+                end
+            end
+        end
+    end
+    wait(0.5)  -- You can adjust the interval for the loop if needed
+end

@@ -34,6 +34,7 @@ local PlayerTab = Window:CreateTab("Player", 4483362458)
 
 local existingHighlights = {}
 local connections = {}
+local cleanupList = {}
 
 local function cleanupHighlight(player)
     if existingHighlights[player] then
@@ -199,18 +200,6 @@ local function shootAtNearestTarget()
     end
 end
 
-coroutine.resume(coroutine.create(function()
-    while wait(1) do
-        expandHitboxes()
-    end
-end))
-
-coroutine.resume(coroutine.create(function()
-    while wait(0.1) do
-        shootAtNearestTarget()
-    end
-end))
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Weapons = ReplicatedStorage:WaitForChild("Weapons")
 
@@ -264,25 +253,19 @@ end
 
 modifyWeaponStats()
 
-setfpscap(999)
-
-game:GetService("RunService").Stepped:Connect(function()
-    if setfpscap then
-        setfpscap(999)
-    end
-end)
-
-local function serverHop()
-    local teleportService = game:GetService("TeleportService")
-    local placeId = game.PlaceId
-    local player = game.Players.LocalPlayer
-
-    teleportService:Teleport(placeId, player)
+while wait(1) do
+    expandHitboxes()
+    shootAtNearestTarget()
 end
 
-PlayerTab:CreateButton({
-    Name = "Server Hop",
-    Callback = function()
-        serverHop()
-    end
+setfpscap(999)
+game:GetService("RunService").Stepped:Connect(function()
+    setfpscap(999)
+end)
+
+local Button = Tab:CreateButton({
+   Name = "Server Hop",
+   Callback = function()
+      serverHop()
+   end,
 })

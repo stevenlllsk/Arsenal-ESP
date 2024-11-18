@@ -13,3 +13,5 @@ Fast Melee
 
 
 ------------------------------------------------------------------
+
+Has memory management to keep frames smooth.

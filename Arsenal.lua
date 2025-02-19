@@ -263,9 +263,4 @@ game:GetService("RunService").Stepped:Connect(function()
     setfpscap(999)
 end)
 
-local Button = Tab:CreateButton({
-   Name = "Server Hop",
-   Callback = function()
-      serverHop()
-   end,
-})
+-- Removed the Server Hop button and its functionality
